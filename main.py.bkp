@@ -1,0 +1,53 @@
+import os
+import time
+import yaml
+import socket
+from prometheus_client import start_http_server, Gauge
+
+# Initialize Prometheus metrics
+ping_latency = Gauge('ping_latency_ms', 'Ping latency in milliseconds', ['host'])
+
+def ping_host(host):
+    try:
+        ping_result = os.system(f"ping -c 1 {host}")
+        return ping_result == 0
+    except Exception as e:
+        return False
+
+def read_config(config_file):
+    try:
+        with open(config_file, 'r') as file:
+            config = yaml.safe_load(file)
+        return config
+    except FileNotFoundError:
+        print(f"Config file '{config_file}' not found.")
+        return {}
+
+def main():
+    config_file = "default.yml"
+    custom_config_file = "custom.yml"
+
+    # Read the default configuration
+    config = read_config(config_file)
+
+    # Check for a custom configuration file
+    if os.path.exists(custom_config_file):
+        custom_config = read_config(custom_config_file)
+        config.update(custom_config)
+
+    host = config['host']
+    ping_interval = config['ping_interval']
+
+    # Read the HTTP server port from an environment variable or use 8080 as the default
+    http_port = int(os.environ.get('HTTP_PORT', 8080))
+
+    # Start the Prometheus HTTP server on the specified port
+    start_http_server(http_port)
+
+    while True:
+        success = ping_host(host)
+        ping_latency.labels(host=host).set(success * 1000)  # Convert to milliseconds
+        time.sleep(ping_interval)
+
+if __name__ == "__main__":
+    main()
