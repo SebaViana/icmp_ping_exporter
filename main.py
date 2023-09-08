@@ -1,7 +1,7 @@
+Copy code
 import os
 import time
 import yaml
-import socket
 from prometheus_client import start_http_server, Gauge
 
 # Initialize Prometheus metrics
@@ -9,10 +9,21 @@ ping_latency = Gauge('ping_latency_ms', 'Ping latency in milliseconds', ['host']
 
 def ping_host(host):
     try:
-        ping_result = os.system(f"ping -c 1 {host}")
-        return ping_result == 0
+        # Run the ping command and capture the output
+        ping_output = os.popen(f"ping -c 1 {host}").read()
+        
+        # Parse the output to extract the round-trip time (RTT) in milliseconds
+        lines = ping_output.split('\n')
+        for line in lines:
+            if 'time=' in line:
+                start = line.find('time=') + 5
+                end = line.find(' ms', start)
+                if start != -1 and end != -1:
+                    rtt = float(line[start:end])
+                    return rtt
+        return None  # Return None if no valid RTT is found in the output
     except Exception as e:
-        return False
+        return None
 
 def read_config(config_file):
     try:
@@ -45,8 +56,11 @@ def main():
     start_http_server(http_port)
 
     while True:
-        success = ping_host(host)
-        ping_latency.labels(host=host).set(success * 1000)  # Convert to milliseconds
+        response_time = ping_host(host)
+        if response_time is not None:
+            ping_latency.labels(host=host).set(response_time)  # Set the actual response time
+        else:
+            ping_latency.labels(host=host).set(0)  # Set 0 for failed ping
         time.sleep(ping_interval)
 
 if __name__ == "__main__":
