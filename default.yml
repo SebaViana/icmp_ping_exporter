@@ -1,2 +1,4 @@
-host: 8.8.8.8 
+hosts:
+  - 8.8.8.8
+  - 8.8.4.4
 ping_interval: 5

@@ -45,7 +45,7 @@ def main():
         custom_config = read_config(custom_config_file)
         config.update(custom_config)
 
-    host = config['host']
+    hosts = config['hosts']
     ping_interval = config['ping_interval']
 
     # Read the HTTP server port from an environment variable or use 8080 as the default
@@ -55,11 +55,12 @@ def main():
     start_http_server(http_port)
 
     while True:
-        response_time = ping_host(host)
-        if response_time is not None:
-            ping_latency.labels(host=host).set(response_time)  # Set the actual response time
-        else:
-            ping_latency.labels(host=host).set(0)  # Set 0 for failed ping
+        for host in hosts:
+            response_time = ping_host(host)
+            if response_time is not None:
+                ping_latency.labels(host=host).set(response_time)  # Set the actual response time
+            else:
+                ping_latency.labels(host=host).set(0)  # Set 0 for failed ping
         time.sleep(ping_interval)
 
 if __name__ == "__main__":
