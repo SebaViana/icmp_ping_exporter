@@ -1,4 +1,6 @@
 hosts:
-  - 8.8.8.8
-  - 8.8.4.4
+  - ip: 8.8.8.8
+    label: external
+  - ip: 8.8.4.4
+    label: external
 ping_interval: 5
