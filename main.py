@@ -4,9 +4,9 @@ import yaml
 from prometheus_client import start_http_server, Gauge
 
 # Initialize Prometheus metrics
-ping_latency = Gauge('ping_latency_ms', 'Ping latency in milliseconds', ['host', 'label']) 
+ping_latency = Gauge('ping_latency_ms', 'Ping latency in milliseconds', ['host', 'label', 'name'])
 
-def ping_host(host, label):
+def ping_host(host, label, name):
     try:
         # Run the ping command and capture the output
         ping_output = os.popen(f"ping -c 1 {host}").read()
@@ -19,10 +19,10 @@ def ping_host(host, label):
                 end = line.find(' ms', start)
                 if start != -1 and end != -1:
                     rtt = float(line[start:end])
-                    return rtt, label
-        return None, label  # Return None if no valid RTT is found in the output
+                    return rtt, label, name
+        return None, label, name  # Return None if no valid RTT is found in the output
     except Exception as e:
-        return None, label
+        return None, label, name
 
 def read_config(config_file):
     try:
@@ -49,11 +49,12 @@ def main():
         for host_info in config['hosts']:
             host = host_info['ip']
             label = host_info['label']
-            response_time, label = ping_host(host, label)
+            name = host_info['name']
+            response_time, label, name = ping_host(host, label, name)
             if response_time is not None:
-                ping_latency.labels(host=host, label=label).set(response_time)  # Set the actual response time
+                ping_latency.labels(host=host, label=label, name=name).set(response_time)  # Set the actual response time
             else:
-                ping_latency.labels(host=host, label=label).set(0)  # Set 0 for failed ping
+                ping_latency.labels(host=host, label=label, name=name).set(0)  # Set 0 for failed ping
         time.sleep(config['ping_interval'])
 
 if __name__ == "__main__":
