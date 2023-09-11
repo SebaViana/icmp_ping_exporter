@@ -43,7 +43,7 @@ def read_config(config_file):
     return config
 
 def main():
-    config_file = "default.yml"
+    config_file = "custom.yml"
 
     # Read the default configuration
     config = read_config(config_file)
