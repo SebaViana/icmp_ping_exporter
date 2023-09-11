@@ -28,10 +28,19 @@ def read_config(config_file):
     try:
         with open(config_file, 'r') as file:
             config = yaml.safe_load(file)
-        return config
     except FileNotFoundError:
         print(f"Config file '{config_file}' not found.")
-        return {}
+        config = {}
+
+    # Load the default configuration
+    default_config_file = "default.yml"
+    with open(default_config_file, 'r') as default_file:
+        default_config = yaml.safe_load(default_file)
+
+    # Merge the custom configuration with the default configuration
+    config = {**default_config, **config}
+
+    return config
 
 def main():
     config_file = "default.yml"
@@ -40,7 +49,7 @@ def main():
     config = read_config(config_file)
 
     # Read the HTTP server port from an environment variable or use 8080 as the default
-    http_port = int(os.environ.get('HTTP_PORT', 8080))
+    http_port = int(os.environ.get('HTTP_PORT', 8085))
 
     # Start the Prometheus HTTP server on the specified port
     start_http_server(http_port)
