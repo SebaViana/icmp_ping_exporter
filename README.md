@@ -8,7 +8,7 @@ The application exposes Prometheus metrics over HTTP, and by default, it listens
 ## Volumes
 You can configure the target hosts and ping interval by specifying the following parameters:
 
-> hosts: Replace your_custom_hosts with the target host you want to monitor, format as list.
-> ping_interval: Replace your_custom_ping_interval with the desired ping interval in seconds.
+https://github.com/SebaViana/icmp_ping_exporter/blob/519ceeb17b03d1c4ea44efaa2d230cbc7cec2d8d/default.yml#L1-L8
 
+You can add as many hosts as you wish.
 These parameters should be added to a mounted volume in the location /app/custom.yml.
